@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar">
 <head>
@@ -20,12 +19,11 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding-top: 5vh;
-      box-sizing: border-box;
+      flex-direction: column;
     }
     .video-item iframe {
       width: 100%;
-      height: 90vh; /* مصغّر لضمان ظهور عناصر التحكم */
+      height: 80vh; /* تم تصغيره لعرض تحكمات الفيديو */
       border: none;
     }
     #addBtn {
@@ -62,6 +60,7 @@
     }
     #formContainer input { background: #222; color: #fff; }
     #formContainer button { background: #43a047; color: #fff; cursor: pointer; }
+
     .controls {
       position: absolute;
       right: 20px;
@@ -105,10 +104,9 @@
       padding: 2px 4px;
       border-radius: 8px;
     }
+
     .fullscreen-btn {
-      position: absolute;
-      bottom: 20px;
-      left: 20px;
+      margin-top: 10px;
       background: rgba(255,255,255,0.1);
       border: none;
       color: #fff;
@@ -117,6 +115,7 @@
       cursor: pointer;
       z-index: 500;
     }
+
     .delete-btn {
       position: absolute;
       top: 10px;
@@ -264,4 +263,4 @@
     }
   </script>
 </body>
-</html>
+  </html>
