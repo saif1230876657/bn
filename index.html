@@ -1,303 +1,265 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
+<html lang="ar">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>مدرس العلوم المتكاملة - دردشة ذكاء اصطناعي</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Cairo&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <title>مشغل فيديوهات Dailymotion</title>
   <style>
-    :root {
-      --bg: #343541;
-      --card: #444654;
-      --text: #d1d5db;
-      --input-bg: #40414f;
-      --primary: #10a37f;
-      --border: #5a5f76;
-      --error: #f56565;
+    body, html { margin: 0; padding: 0; background: #000; color: #fff; font-family: sans-serif; overflow: hidden; }
+    #videos {
+      height: 100vh;
+      overflow-y: scroll;
+      scroll-snap-type: y mandatory;
+      -webkit-overflow-scrolling: touch;
     }
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-      font-family: 'Inter', sans-serif;
-    }
-    body {
-      background: var(--bg);
-      color: var(--text);
+    .video-item {
+      position: relative;
+      height: 100vh;
+      scroll-snap-align: center;
       display: flex;
+      align-items: center;
       justify-content: center;
-      align-items: flex-start;
-      padding-top: 10px;
     }
-    .container {
+    .video-item iframe {
       width: 100%;
-      max-width: 700px;
-      height: 90vh;
-      background: var(--card);
+      height: 100vh;
+      border: none;
+    }
+    #addBtn {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      background: #1e88e5;
+      border: none;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      font-size: 30px;
+      color: #fff;
+      cursor: pointer;
+      z-index: 1000;
+    }
+    #formContainer {
+      position: fixed;
+      top: 80px;
+      left: 20px;
+      background: rgba(0,0,0,0.8);
+      padding: 15px;
       border-radius: 8px;
+      display: none;
+      flex-direction: column;
+      z-index: 1000;
+    }
+    #formContainer input, #formContainer button {
+      width: 250px;
+      padding: 8px;
+      margin: 5px 0;
+      border: none;
+      border-radius: 4px;
+    }
+    #formContainer input { background: #222; color: #fff; }
+    #formContainer button { background: #43a047; color: #fff; cursor: pointer; }
+    .controls {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
       display: flex;
       flex-direction: column;
-      overflow: hidden;
-    }
-    .header {
-      padding: 0.75rem 1rem;
-      display: flex;
       align-items: center;
-      background: var(--bg);
+      z-index: 500;
     }
-    .header i.fa-robot {
-      font-size: 1.6rem;
-      color: var(--primary);
-    }
-    .header h1 {
-      flex: 1;
-      font-size: 1.3rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 0.4rem;
-    }
-    .header button {
-      background: none;
+    .controls button {
+      background: rgba(255,255,255,0.1);
       border: none;
-      color: var(--primary);
-      font-size: 1rem;
+      width: 56px;
+      height: 56px;
+      border-radius: 28px;
+      margin: 8px 0;
+      color: #fff;
+      font-size: 18px;
       cursor: pointer;
-    }
-    .chat-container {
-      flex: 1;
-      padding: 0.75rem;
-      overflow-y: auto;
-    }
-    .message {
-      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.3s;
       position: relative;
     }
-    .message.user {
-      text-align: right;
+    .heart-icon {
+      width: 24px;
+      height: 24px;
+      transition: fill 0.3s ease;
+      fill: white;
     }
-    .message.bot {
-      text-align: left;
+    .liked .heart-icon { fill: red; }
+    .controls .count {
+      font-size: 12px;
+      margin-top: 4px;
+      position: absolute;
+      bottom: -4px;
+      right: -4px;
+      background: rgba(0,0,0,0.6);
+      padding: 2px 4px;
+      border-radius: 8px;
     }
-    .bubble {
-      display: inline-block;
-      padding: 0.8rem 1rem;
-      border-radius: 12px;
-      line-height: 1.4;
-      font-size: 1.15rem;
-    }
-    .message.user .bubble {
-      background: var(--input-bg);
-    }
-    .message.bot .bubble {
-      background: var(--bg);
-      border: 1px solid var(--border);
-      font-family: 'Cairo', sans-serif;
-    }
-    .actions {
-      margin-top: 0.3rem;
-      display: flex;
-      gap: 0.5rem;
-    }
-    .actions i {
-      cursor: pointer;
-    }
-    .chat-input {
-      display: flex;
-      padding: 0.4rem;
-      background: var(--input-bg);
-    }
-    .chat-input textarea {
-      flex: 1;
+    .fullscreen-btn {
+      position: absolute;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.1);
       border: none;
-      border-radius: 6px;
-      padding: 0.6rem;
-      background: var(--card);
-      color: var(--text);
-      resize: none;
-      outline: none;
-      font-size: 1.15rem;
-      font-family: 'Inter', sans-serif;
-    }
-    .chat-input button {
-      margin-left: 0.4rem;
-      width: 36px;
-      height: 36px;
-      border: none;
-      border-radius: 50%;
-      background: var(--primary);
       color: #fff;
-      font-size: 1rem;
+      padding: 6px 12px;
+      border-radius: 4px;
       cursor: pointer;
+      z-index: 500;
     }
-    .chat-input button:hover {
-      opacity: 0.9;
-    }
-    .log-container {
-      display: none;
-      padding: 0.75rem;
-      background: var(--input-bg);
-      max-height: 200px;
-      overflow-y: auto;
-      font-size: 0.9rem;
-    }
-    .status {
-      padding: 4px 8px;
-      font-size: 0.85rem;
-    }
-    .status.error {
-      color: var(--error);
-    }
-    a.more-link {
-      color: var(--primary);
-      margin-left: 0.5rem;
+    .delete-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      background: rgba(255, 0, 0, 0.6);
+      border: none;
+      color: white;
+      padding: 5px 10px;
+      border-radius: 50%;
       cursor: pointer;
-      text-decoration: underline;
+      font-size: 16px;
+      z-index: 1001;
     }
   </style>
 </head>
 <body>
-  <div class="container">
-    <div class="header">
-      <i class="fas fa-robot"></i>
-      <h1>مدرس العلوم المتكاملة</h1>
-      <button id="showLog">السجل</button>
-    </div>
-    <div id="logContainer" class="log-container"></div>
-    <div id="chatContainer" class="chat-container"></div>
-    <div id="statusBar" class="status"></div>
-    <div class="chat-input">
-      <textarea id="userInput" rows="1" placeholder="اكتب رسالتك هنا..."></textarea>
-      <button onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
-      <input id="apiKey" type="hidden" value="AIzaSyBUqzhaui0pz0PqhCsVEpQYfOHsCYKtPBk">
-    </div>
+  <button id="addBtn">+</button>
+  <div id="formContainer">
+    <input type="text" id="videoUrl" placeholder="رابط فيديو Dailymotion" />
+    <button id="publishBtn">نشر الفيديو</button>
   </div>
-  <script>
-    // ضبط الصف والمنهج بشكل ثابت
-    const grade = 'أولى ثانوي';
-    const curriculum = 'العلوم المتكاملة';
-    let conversationHistory = localStorage.getItem('saAI_history') || '';
+  <div id="videos"></div>
 
-    const chatContainer = document.getElementById('chatContainer');
-    const logContainer  = document.getElementById('logContainer');
-    const statusBar     = document.getElementById('statusBar');
-    const userInput     = document.getElementById('userInput');
-    const apiKey        = document.getElementById('apiKey').value;
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-app.js';
+    import { getFirestore, collection, addDoc, serverTimestamp, query, orderBy, onSnapshot, doc, updateDoc, increment, deleteDoc } from 'https://www.gstatic.com/firebasejs/11.7.1/firebase-firestore.js';
 
-    document.getElementById('showLog').onclick = () => {
-      logContainer.innerHTML = '';
-      const lines = (conversationHistory || '').split('\n');
-      lines.forEach(line => {
-        if (line.trim()) {
-          const div = document.createElement('div');
-          div.textContent = line;
-          div.style.margin = '4px 0';
-          logContainer.appendChild(div);
-        }
-      });
-      logContainer.style.display = logContainer.style.display === 'block' ? 'none' : 'block';
+    const firebaseConfig = {
+      apiKey: 'AIzaSyAjE-2q6PONBkCin9ZN22gDp9Q8pAH9ZW8',
+      authDomain: 'story-97cf7.firebaseapp.com',
+      projectId: 'story-97cf7',
+      storageBucket: 'story-97cf7.appspot.com',
+      messagingSenderId: '742801388214',
+      appId: '1:742801388214:web:32a305a8057b0582c5ec17'
+    };
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const videosCol = collection(db, 'videos');
+
+    let currentIframe = null;
+
+    document.getElementById('addBtn').onclick = () => {
+      const form = document.getElementById('formContainer');
+      form.style.display = form.style.display === 'flex' ? 'none' : 'flex';
     };
 
-    addBot(`مرحبًا بك في مدرس العلوم المتكاملة للصف ${grade} (منهج ${curriculum}).`);
-    addBot(`سأجيب فقط على الأسئلة من منهج ${curriculum}. لا يمكنني الإجابة على أي سؤال خارج هذا المنهج.`);
+    document.getElementById('publishBtn').onclick = async () => {
+      const url = document.getElementById('videoUrl').value.trim();
+      if (!url) return alert('يرجى إدخال رابط صحيح');
+      await addDoc(videosCol, { url, likes: 0, createdAt: serverTimestamp() });
+      document.getElementById('videoUrl').value = '';
+      document.getElementById('formContainer').style.display = 'none';
+    };
 
-    function addUser(text) {
-      appendMessage('user', text);
-      conversationHistory += `المستخدم: ${text}\n`;
-      saveHistory();
-    }
-
-    function addBot(text) {
-      appendMessage('bot', text);
-      conversationHistory += `مدرس: ${text}\n`;
-      saveHistory();
-    }
-
-    function appendMessage(sender, text) {
-      const msg = document.createElement('div');
-      msg.className = `message ${sender}`;
-      const bubble = document.createElement('div');
-      bubble.className = 'bubble';
-      if (sender === 'bot' && text.length > 200) {
-        bubble.textContent = text.slice(0, 200) + '...';
-        const moreLink = document.createElement('a');
-        moreLink.textContent = 'مزيد من التفاصيل';
-        moreLink.className = 'more-link';
-        moreLink.onclick = e => {
-          e.preventDefault();
-          if (bubble.textContent.length > 200) {
-            bubble.textContent = text.replace(/\n/g, '\n').replace(/(\d+)\./g, '\n$1.');
-            moreLink.textContent = 'إخفاء التفاصيل';
-          } else {
-            bubble.textContent = text.slice(0, 200) + '...';
-            moreLink.textContent = 'مزيد من التفاصيل';
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        const iframe = entry.target.querySelector('iframe');
+        if (!iframe) return;
+        if (entry.isIntersecting) {
+          if (currentIframe && currentIframe !== iframe) {
+            currentIframe.contentWindow.postMessage('pause', '*');
           }
-        };
-        msg.appendChild(bubble);
-        msg.appendChild(moreLink);
-      } else {
-        bubble.textContent = text.replace(/\n/g, '\n').replace(/(\d+)\./g, '\n$1.');
-        msg.appendChild(bubble);
-      }
-      const actions = document.createElement('div');
-      actions.className = 'actions';
-      const delIcon = document.createElement('i');
-      delIcon.className = 'fas fa-trash';
-      delIcon.title = 'حذف';
-      delIcon.onclick = () => msg.remove();
-      const copyIcon = document.createElement('i');
-      copyIcon.className = 'fas fa-copy';
-      copyIcon.title = 'نسخ';
-      copyIcon.onclick = () => navigator.clipboard.writeText(text);
-      actions.appendChild(delIcon);
-      actions.appendChild(copyIcon);
-      msg.appendChild(actions);
+          currentIframe = iframe;
+          iframe.contentWindow.postMessage('play', '*');
+        }
+      });
+    }, { threshold: 0.6 });
 
-      chatContainer.appendChild(msg);
-      chatContainer.scrollTop = chatContainer.scrollHeight;
-    }
-
-    function setStatus(msg, isError = false) {
-      statusBar.textContent = msg;
-      statusBar.className = isError ? 'status error' : 'status';
-      if (!isError) setTimeout(() => statusBar.textContent = '', 1500);
-    }
-
-    function saveHistory() {
-      localStorage.setItem('saAI_history', conversationHistory);
-    }
-
-    async function sendMessage() {
-      const text = userInput.value.trim();
-      if (!text) return;
-      addUser(text);
-      userInput.value = '';
-      setStatus('جاري المعالجة...');
-      try {
-        const prompt = conversationHistory + 'مدرس:';
-        const res = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ contents:[{ parts:[{ text: prompt }] }] })
-          }
-        );
-        const data = await res.json();
-        const reply = data.candidates?.[0]?.content?.parts?.[0]?.text?.trim() || 'لم أستلم رد.';
-        addBot(reply);
-      } catch {
-        setStatus('خطأ في الاتصال', true);
-      }
-    }
-
-    userInput.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && !e.shiftKey) {
-        e.preventDefault();
-        sendMessage();
-      }
+    const videosDiv = document.getElementById('videos');
+    onSnapshot(query(videosCol, orderBy('createdAt', 'desc')), snapshot => {
+      snapshot.docChanges().forEach(change => {
+        if (change.type === 'added') {
+          renderVideo(change.doc.id, change.doc.data());
+        }
+      });
     });
+
+    function renderVideo(id, data) {
+      const item = document.createElement('div');
+      item.className = 'video-item';
+
+      const match = data.url.match(/video\/([\w]+)/) || data.url.match(/embed\/video\/([\w]+)/);
+      const videoId = match ? match[1] : null;
+      const iframe = document.createElement('iframe');
+      iframe.src = videoId ? `https://www.dailymotion.com/embed/video/${videoId}?autoplay=1&mute=1&api=postMessage` : '';
+      item.appendChild(iframe);
+      observer.observe(item);
+
+      // زر الحذف
+      const deleteBtn = document.createElement('button');
+      deleteBtn.className = 'delete-btn';
+      deleteBtn.textContent = '🗑️';
+      deleteBtn.onclick = async () => {
+        const code = prompt('ادخل الرمز السري لحذف الفيديو');
+        if (code === 'saifsa') {
+          await deleteDoc(doc(db, 'videos', id));
+          item.remove();
+        } else {
+          alert('رمز خاطئ');
+        }
+      };
+      item.appendChild(deleteBtn);
+
+      const controls = document.createElement('div');
+      controls.className = 'controls';
+
+      const likeBtn = document.createElement('button');
+      likeBtn.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" class="heart-icon">
+          <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 
+            2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41 0.81 
+            4.5 2.09C13.09 3.81 14.76 3 16.5 
+            3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 
+            6.86-8.55 11.54L12 21.35z"/>
+        </svg>
+        <div class="count">${data.likes}</div>
+      `;
+      likeBtn.onclick = async () => {
+        const isLiked = likeBtn.classList.toggle('liked');
+        const ref = doc(db, 'videos', id);
+        const change = isLiked ? 1 : -1;
+        await updateDoc(ref, { likes: increment(change) });
+        const countSpan = likeBtn.querySelector('.count');
+        countSpan.textContent = parseInt(countSpan.textContent) + change;
+      };
+      controls.appendChild(likeBtn);
+      item.appendChild(controls);
+
+      const fsBtn = document.createElement('button');
+      fsBtn.className = 'fullscreen-btn';
+      fsBtn.textContent = 'تكبير';
+      fsBtn.onclick = () => {
+        if (!document.fullscreenElement) {
+          item.requestFullscreen().then(() => {
+            fsBtn.textContent = 'تصغير';
+          });
+        } else {
+          document.exitFullscreen().then(() => {
+            fsBtn.textContent = 'تكبير';
+          });
+        }
+      };
+      item.appendChild(fsBtn);
+
+      videosDiv.appendChild(item);
+    }
   </script>
 </body>
 </html>
